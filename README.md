@@ -164,5 +164,4 @@ This project showcases:
 Feel free to reach out for questions or improvements:
 
 **Miguel Murga Guevara**  
-[Docker Hub Profile](https://hub.docker.com/u/miguelmurga)  
-[GitHub Profile](https://github.com/your_github_username)
+[Docker Hub Profile](https://hub.docker.com/u/miguelmurga)
